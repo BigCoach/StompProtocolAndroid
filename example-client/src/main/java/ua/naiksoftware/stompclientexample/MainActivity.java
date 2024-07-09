@@ -52,8 +52,10 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true));
 
-        mStompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://" + ANDROID_EMULATOR_LOCALHOST
-                + ":" + RestClient.SERVER_PORT + "/example-endpoint/websocket");
+        mStompClient = Stomp.over(
+                Stomp.ConnectionProvider.OKHTTP,
+                "url"
+        );
 
         resetSubscriptions();
     }
@@ -101,12 +103,15 @@ public class MainActivity extends AppCompatActivity {
         compositeDisposable.add(dispLifecycle);
 
         // Receive greetings
-        Disposable dispTopic = mStompClient.topic("/topic/greetings")
+        Disposable dispTopic = mStompClient.topic("/user/9fae4f9d-cb5a-11ee-896a-46b9845cff6b/notification")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(topicMessage -> {
                     Log.d(TAG, "Received " + topicMessage.getPayload());
-                    addItem(mGson.fromJson(topicMessage.getPayload(), EchoModel.class));
+                    String message = topicMessage.getPayload();
+                    EchoModel model = new EchoModel();
+                    model.setEcho(message);
+                    addItem(model);
                 }, throwable -> {
                     Log.e(TAG, "Error on subscribe topic", throwable);
                 });
@@ -118,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void sendEchoViaStomp(View v) {
 //        if (!mStompClient.isConnected()) return;
-        compositeDisposable.add(mStompClient.send("/topic/hello-msg-mapping", "Echo STOMP " + mTimeFormat.format(new Date()))
+        compositeDisposable.add(mStompClient.send("/user/9fae4f9d-cb5a-11ee-896a-46b9845cff6b/notification", "Echo STOMP " + mTimeFormat.format(new Date()))
                 .compose(applySchedulers())
                 .subscribe(() -> {
                     Log.d(TAG, "STOMP echo send successfully");

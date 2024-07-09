@@ -5,6 +5,7 @@ package ua.naiksoftware.stompclientexample;
  */
 public class EchoModel {
 
+
     private String echo;
 
     public EchoModel() {
